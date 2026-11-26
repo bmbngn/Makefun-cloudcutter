@@ -37,8 +37,13 @@ export function createFlight(difficulty) {
     const windZ = state.wind.z + gust * 0.5;
 
     // Throttle: Shift/R up, Ctrl/F down; airbrake trims speed hard.
-    if (input.throttleUp) state.throttle = Math.min(1, state.throttle + dt * 0.55);
-    if (input.throttleDown) state.throttle = Math.max(0, state.throttle - dt * 0.55);
+    // The touch lever sets the throttle directly; the keyboard ramps it.
+    if (input.throttleSet != null) {
+      state.throttle = Math.max(0, Math.min(1, input.throttleSet));
+    } else {
+      if (input.throttleUp) state.throttle = Math.min(1, state.throttle + dt * 0.55);
+      if (input.throttleDown) state.throttle = Math.max(0, state.throttle - dt * 0.55);
+    }
     if (state.fuel <= 0) state.throttle = 0;
 
     // Fuel burn follows the throttle.

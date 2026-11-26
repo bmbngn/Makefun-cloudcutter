@@ -7,6 +7,7 @@ export function createInput(canvas) {
     rollLeft: false, rollRight: false,
     throttleUp: false, throttleDown: false,
     brake: false,
+    throttleSet: null, // set by the touch throttle lever (0..1); null = keyboard owns the throttle
     gearToggle: false, // edge-triggered, consumed by the loop
     pauseToggle: false, // edge-triggered, consumed by the loop
     muteToggle: false, // edge-triggered, consumed by the loop

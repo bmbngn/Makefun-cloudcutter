@@ -9,6 +9,7 @@ import { buildPlane } from './plane.js';
 import { buildRings, checkRingPass } from './rings.js';
 import { createFlight, chaseCamera, TAKEOFF_SPEED } from './physics.js';
 import { createInput } from './input.js';
+import { createTouchUI } from './touch.js';
 import { createHud } from './hud.js';
 import { createAudio } from './audio.js';
 
@@ -30,6 +31,7 @@ const plane = buildPlane();
 scene.add(plane.group);
 const rings = buildRings(scene);
 const input = createInput(canvas);
+const touch = createTouchUI(input); // no-op on desktop: no touch UI is built
 const hud = createHud();
 const audio = createAudio();
 
@@ -66,6 +68,9 @@ function showScreen(name) {
     el.classList.toggle('hidden', key !== name);
   }
   hudEl.classList.toggle('hidden', name === 'title');
+  // Touch controls live only while playing; leaving play clears any held input.
+  document.body.classList.toggle('playing', name === null);
+  if (touch && name !== null) touch.reset();
 }
 
 function setDifficulty(key) {
@@ -97,7 +102,10 @@ function startGame() {
   fuelWarned = false;
   screen = 'playing';
   showScreen(null);
-  hud.showMessage('Throttle up — Shift to climb out, runway 09', 4);
+  const touchStart = document.body.classList.contains('touch');
+  hud.showMessage(touchStart
+    ? 'Throttle up — drag the right lever to climb out, runway 09'
+    : 'Throttle up — Shift to climb out, runway 09', 4);
 }
 
 function endGame(landed) {
@@ -235,7 +243,10 @@ function frame() {
 
   if (edges.mute) {
     audio.setMuted(!audio.isMuted());
-    hud.showMessage(audio.isMuted() ? 'Sound off (M to turn back on)' : 'Sound on');
+    const touchOff = document.body.classList.contains('touch');
+    hud.showMessage(audio.isMuted()
+      ? (touchOff ? 'Sound off (tap SOUND to turn back on)' : 'Sound off (M to turn back on)')
+      : 'Sound on');
   }
 
   if (screen === 'title') {
@@ -363,6 +374,7 @@ if (debugMode) {
     get ringIndex() { return ringIndex; },
     get score() { return score; },
     get elapsed() { return elapsed; },
+    get input() { return input.input; },
   };
 }
 frame();
